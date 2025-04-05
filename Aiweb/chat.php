@@ -1,37 +1,44 @@
 <?php
 
-$api_key = "xxxxx";
+$api_key = "your_openai_key_here";
 
-$user_input = $_POST['message'] ?? '';
+$data = json_decode(file_get_contents("php://input"), true);
 
-if (!$user_input) {
-    echo "No input received.";
-    exit;
-}
+$user_input = $data["message"] ?? '';
+$image_base64 = $data["image"] ?? null;
 
-$data = [
-    "model" => "gpt-4",
-    "messages" => [
-        ["role" => "user", "content" => $user_input]
-    ],
-    "temperature" => 0.7
+$messages = [["role" => "user", "content" => $user_input]];
+$payload = [
+  "model" => "gpt-4o",
+  "messages" => [],
+  "temperature" => 0.7
 ];
 
-$ch = curl_init();
+if ($image_base64) {
+  $payload["messages"][] = [
+    "role" => "user",
+    "content" => [
+      ["type" => "text", "text" => $user_input],
+      ["type" => "image_url", "image_url" => ["url" => "data:image/jpeg;base64," . $image_base64]]
+    ]
+  ];
+} else {
+  $payload["messages"] = [["role" => "user", "content" => $user_input]];
+}
 
-curl_setopt($ch, CURLOPT_URL, "https://api.openai.com/v1/chat/completions");
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Authorization: Bearer $api_key",
-    "Content-Type: application/json"
+$ch = curl_init("https://api.openai.com/v1/chat/completions");
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_POST => true,
+  CURLOPT_HTTPHEADER => [
+    "Content-Type: application/json",
+    "Authorization: Bearer $api_key"
+  ],
+  CURLOPT_POSTFIELDS => json_encode($payload)
 ]);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
 $response = curl_exec($ch);
 curl_close($ch);
 
-//่json
 $result = json_decode($response, true);
-
-echo $result["choices"][0]["message"]["content"] ?? "Error contacting GPT-4.";
+echo $result["choices"][0]["message"]["content"] ?? "Error from GPT-4o.";

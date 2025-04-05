@@ -2,26 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GPT-4 Chatbot</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>MatchRole - Upload</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <h1 class="text-4xl font-bold mb-6 text-center mt-6">MatchRole</h1>
+  <!-- Toggle Theme -->
+  <div class="absolute top-4 right-4 flex items-center space-x-2">
+    <span id="theme-label" class="text-sm font-medium text-gray-600">Light Mode</span>
+    <button onclick="toggleTheme()" class="w-14 h-8 flex items-center bg-gray-300 rounded-full p-1 transition duration-300" id="theme-toggle">
+      <div class="bg-white w-6 h-6 rounded-full shadow-md transform transition duration-300" id="theme-circle"></div>
+    </button>
+  </div>
 </head>
-<body>
-  <div id="chat-box"></div>
-  <input type="text" id="message" placeholder="Type a message..." />
-  <button onclick="sendMessage()">Send</button>
+<!-- Navigation Bar -->
+<nav class="bg-blue-500 text-white px-6 py-4 shadow-md">
+  <div class="container mx-auto flex justify-between items-center">
+    <a href="index.html" class="hover:underline" >Home</a>
+  
+    
+
+
+      <!-- Add more links if needed -->
+    </div>
+  </div>
+</nav>
+
+<!-- Body -->
+<body class="bg-white text-black transition-colors duration-300 min-h-screen flex flex-col" id="body">
+  <div class="flex-grow">
+    <div class="container mx-auto p-4 relative h-full">
+
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Preview Box -->
+      <div id="image-preview"
+        class="w-full h-64 overflow-auto border border-dashed border-gray-400 rounded-lg p-4 bg-gray-50 text-center text-gray-600 flex items-center justify-center">
+        <p class="text-sm">No image selected</p>
+      </div>
+
+      <!-- Form -->
+      <form action="result.php" method="POST" enctype="multipart/form-data"
+        class="w-full h-64 border border-gray-300 rounded-lg p-4 bg-white flex flex-col justify-between">
+        
+        <!-- Input fields -->
+        <div>
+          <input name="message" id="message" type="text" placeholder="Type a message..."
+            class="w-full p-2 border border-gray-300 rounded-lg text-black mb-4">
+          <input name="image" type="file" id="imageUpload" accept="image/*" class="w-full text-sm">
+        </div>
+
+        <button type="submit"
+          class="w-full mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-purple-600">
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
 
   <script>
-    async function sendMessage() {
-      const msg = document.getElementById("message").value;
-      const response = await fetch("chat.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "message=" + encodeURIComponent(msg)
-      });
-      const result = await response.text();
-      document.getElementById("chat-box").innerHTML += "<div><b>You:</b> " + msg + "</div>";
-      document.getElementById("chat-box").innerHTML += "<div><b>GPT:</b> " + result + "</div>";
-      document.getElementById("message").value = "";
+    document.getElementById("imageUpload").addEventListener("change", function () {
+      const previewBox = document.getElementById("image-preview");
+      const file = this.files[0];
+      if (!file) {
+        previewBox.innerHTML = `<p class="text-sm text-gray-600">No image selected</p>`;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewBox.innerHTML = `<img src="${e.target.result}" class="max-w-xs mx-auto rounded-lg border" alt="Preview">`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    let darkMode = false;
+    function toggleTheme() {
+      const body = document.getElementById("body");
+      const circle = document.getElementById("theme-circle");
+      const toggleBtn = document.getElementById("theme-toggle");
+      const label = document.getElementById("theme-label");
+
+      darkMode = !darkMode;
+      if (darkMode) {
+        body.classList.replace("bg-white", "bg-gray-900");
+        body.classList.replace("text-black", "text-white");
+        toggleBtn.classList.replace("bg-gray-300", "bg-purple-600");
+        circle.classList.add("translate-x-6");
+        label.textContent = "Dark Mode";
+        label.classList.replace("text-gray-600", "text-white");
+      } else {
+        body.classList.replace("bg-gray-900", "bg-white");
+        body.classList.replace("text-white", "text-black");
+        toggleBtn.classList.replace("bg-purple-600", "bg-gray-300");
+        circle.classList.remove("translate-x-6");
+        label.textContent = "Light Mode";
+        label.classList.replace("text-white", "text-gray-600");
+      }
     }
   </script>
 </body>
